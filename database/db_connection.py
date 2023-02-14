@@ -8,7 +8,7 @@ import sqlite3
 class DBConnection():
 
     def start_connection(self):
-        connection = sqlite3.connect('application/db/tournament.db')
+        connection = sqlite3.connect('Database/tournament.db')
         return connection.cursor()
     
     def exec_tables_creation(self, cursor):

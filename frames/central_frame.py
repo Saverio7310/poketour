@@ -1,6 +1,7 @@
 import tkinter
 import customtkinter
-from db import *
+from Classes.download import Download
+from Database.db_connection import DBConnection
 
 class CentralFrame(customtkinter.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -48,9 +49,12 @@ class CentralFrame(customtkinter.CTkFrame):
 
 
     def confirm_button_event(self):
-        #down = dl.Download()
         print(self.check_type.get())
-        db = data.DBConnection()
+        down = Download()
+        '''
+        '''
+        db = DBConnection()
         cursor = db.start_connection()
         result = db.exec_tables_creation(cursor)
         print(result)
+        

@@ -3,7 +3,7 @@
 import requests
 import bs4
 import re
-import pokemon as poke
+import Classes.pokemon as poke
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By

@@ -12,8 +12,8 @@ assieme uso sticky='nsew' allora oltre a muoversi gli elementi andranno ad occup
 
 import tkinter
 import customtkinter
-import sidebar_frame as sf
-import central_frame as cf
+import Frames.sidebar_frame as sf
+import Frames.central_frame as cf
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
