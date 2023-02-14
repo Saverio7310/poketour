@@ -7,6 +7,7 @@ import Classes.pokemon as poke
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import WebDriverException, NoSuchElementException
 
 
 class Download():
@@ -17,7 +18,7 @@ class Download():
     TEAMLIST_URL = "https://rk9.gg"
     TOURNAMENT_CODE = "df5AzRjKxTb62H7BsbOe"
 
-    def establish_connection(self):
+    def establish_connection(self, code):
         # driver per andare a caricare la pagina html dato che la lista non viene caricata tutta subito. Non so nello specifico
         # a cosa servino. In questo caso ho usato ChromeOpitons dato che è uno dei browser più usati.
         options = webdriver.ChromeOptions()
@@ -26,8 +27,14 @@ class Download():
         options.add_argument('--disable-dev-shm-usage')
         # si carica la pagina html e tramite il Select si seleziona 'All' che mostra la lista completa di tutti gli iscritti
         web_driver = webdriver.Chrome('chromedriver', options=options)
-        web_driver.get(self.CLASSIFICATION_URL + self.TOURNAMENT_CODE)
-        select = Select(web_driver.find_element(By.NAME, "dtLiveRoster_length"))
+        try:
+            web_driver.get(self.CLASSIFICATION_URL + code)
+        except WebDriverException:
+            raise Exception('Link errato. Connessione non riuscita!')
+        try:
+            select = Select(web_driver.find_element(By.NAME, "dtLiveRoster_length"))
+        except NoSuchElementException:
+            raise Exception('Codice torneo non valido!')    
         select.select_by_visible_text('All')
         # tramite bs4 mi prendo il codice html solo dopo aver caricato la lista, altrimenti non la potevo vedere. Tramite find
         # trovo la tabella contenente i dati
@@ -37,7 +44,7 @@ class Download():
     # i due metodi seguenti servono a prendere i dati dei team. Se li si prende prima che i 
     # risultati con le posizioni siano usciti allora non bisogna prendere in considerazione la 
     # posizione perché ovviamente non c'è. Questa scelta la prendo attraverso un try - except
-    def get_link_with_standing(self, tokens, items, set_teams):
+    def __get_link_with_standing(tokens, items, set_teams):
         if 'Masters' in tokens:
             for item_anchor in items.find_all("a"):
                 link = item_anchor['href']
@@ -46,7 +53,7 @@ class Download():
             set_teams.add((link, standing))
             print('inserisco:', link, standing)
 
-    def get_link_without_standing(self, tokens, items, set_teams):
+    def __get_link_without_standing(tokens, items, set_teams):
         if 'Masters' in tokens:
             for item_anchor in items.find_all("a"):
                 link = item_anchor['href']
@@ -70,12 +77,12 @@ class Download():
                 try_index = tokens_list_row.index('View')
                 tokens_list_row[try_index + 1]
             except IndexError:
-                self.get_link_without_standing(tokens_list_row, item_table_row, set_teams)
+                self.__get_link_without_standing(tokens_list_row, item_table_row, set_teams)
                 # trasformo il set in una lista e printo la linghezza per capire quanti elementi contiene
                 list_teams = list(set_teams)
                 print(len(list_teams))
             else:
-                self.get_link_with_standing(tokens_list_row, item_table_row, set_teams)
+                self.__get_link_with_standing(tokens_list_row, item_table_row, set_teams)
                 # ordino il set per ordine di arrivo se controllo la top 32
                 list_teams = list(set_teams)
                 list_teams = sorted(list_teams, key=lambda a: a[1])

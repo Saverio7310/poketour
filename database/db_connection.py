@@ -19,4 +19,13 @@ class DBConnection():
         )
         """)
         return result
+    
+    def create_table_new_tournament(self, tour_name, tour_code):
+        connection = sqlite3.connect('Database/tournament.db')
+        connection.execute('''
+        CREATE TABLE IF NOT EXISTS {name}(
+        link text PRIMARY KEY,
+        standing integer
+        )
+        '''.format(name= tour_name))
 

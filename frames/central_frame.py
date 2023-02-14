@@ -1,4 +1,5 @@
 import tkinter
+from tkinter.tix import Balloon
 import customtkinter
 from Classes.download import Download
 from Database.db_connection import DBConnection
@@ -8,7 +9,12 @@ class CentralFrame(customtkinter.CTkFrame):
         super().__init__(master, **kwargs)
 
         # variabili collegate ai vari oggetti
-        self.check_type = tkinter.IntVar()
+        self.var_tour_name = ''
+        self.var_tour_code = ''
+        self.var_topcut = ''
+        self.check_type = 0
+        self.check_moveset = 0
+        self.check_standing = 0
 
         # entry per il nome del torneo
         self.label_tour_name = customtkinter.CTkLabel(self, width=200, text="Nome torneo", anchor='w')
@@ -30,12 +36,12 @@ class CentralFrame(customtkinter.CTkFrame):
         self.optionmenu.grid(row=2, column=1, padx=10, pady=10)
 
         # checkbox per la tipologia
-        self.checkbox_type = customtkinter.CTkCheckBox(self, text="Tipologia", variable=self.check_type)
+        self.checkbox_type = customtkinter.CTkCheckBox(self, text="Tipologia")
         self.checkbox_type.grid(row=0, column=2, pady=20, padx=20)
 
         # checkbox per il moveset
-        self.checkbox_type = customtkinter.CTkCheckBox(self, text="Set mosse")
-        self.checkbox_type.grid(row=1, column=2, pady=20, padx=20)
+        self.checkbox_moveset = customtkinter.CTkCheckBox(self, text="Set mosse")
+        self.checkbox_moveset.grid(row=1, column=2, pady=20, padx=20)
 
         # checkbox che serve a capire se rk9 ha già pubblicato le posizioni finali oppure se 
         # il torneo è ancora in corso e non bisogna salvare le posizioni 
@@ -48,13 +54,40 @@ class CentralFrame(customtkinter.CTkFrame):
         self.confirm_choices_button.grid(row=3, column=2, padx=20, pady=10)
 
 
+    # funzine che controlla se i campi necessari del central frame sono mancanti
+    def check_attribute_missing(self):
+        self.var_tour_name = self.entry_tour_name.get()
+        self.var_tour_code = self.entry_tour_code.get()
+        self.var_topcut = self.optionmenu.get()
+        self.check_type = self.checkbox_type.get()
+        self.check_moveset = self.checkbox_moveset.get()
+        self.check_standing = self.checkbox_standing.get()
+        if self.var_tour_name == '' or self.var_tour_code == '':
+            raise Exception('Nome o codice torneo mancante!')
+
     def confirm_button_event(self):
-        print(self.check_type.get())
+        try:
+            self.check_attribute_missing()
+        except Exception as exp:
+            print(exp)
+            return
+        print('blablabla')
+
         down = Download()
+        try:
+            table = down.establish_connection(code=self.var_tour_code)
+        except Exception as exp:
+            print(exp)
+            return
+        list_all_teams_link = down.get_teams_link(table=table)
+        list_all_teams = down.get_all_teams(teams_link=list_all_teams_link)
+        
+
         '''
-        '''
+        print(self.check_type.get())
         db = DBConnection()
         cursor = db.start_connection()
         result = db.exec_tables_creation(cursor)
         print(result)
+        '''
         
