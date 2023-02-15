@@ -29,6 +29,7 @@ class Download():
         web_driver = webdriver.Chrome('chromedriver', options=options)
         try:
             web_driver.get(self.CLASSIFICATION_URL + code)
+            print(self.CLASSIFICATION_URL + code)
         except WebDriverException:
             raise Exception('Link errato. Connessione non riuscita!')
         try:
@@ -57,7 +58,7 @@ class Download():
         if 'Masters' in tokens:
             for item_anchor in items.find_all("a"):
                 link = item_anchor['href']
-            set_teams.add(link)
+            set_teams.add((link,))
             print('inserisco:', link)
 
     def get_teams_link(self, table):
@@ -71,7 +72,7 @@ class Download():
         set_teams = set()
         for item_table_row in table.find_all("tr"):
             tokens_list_row = item_table_row.text.split()
-            #print(*tokens_list_row, sep="\n")
+            print(*tokens_list_row, sep="\n")
             #print(type(tokens_ex), len(tokens_ex))
             try:
                 try_index = tokens_list_row.index('View')
@@ -116,6 +117,7 @@ class Download():
             team_table = team_soup.find("div", {"class": "my-3 mx-5 pt-2 px-3 translation lang-EN"})
 
             list_single_team = list()
+            list_tuple_all_poke = list()
 
             for single_pokemon in team_table.find_all("div", {"class": "pokemon bg-light-green-50 p-3"}):
                 list_moves = list()
@@ -149,12 +151,13 @@ class Download():
                 item = ''.join(list_chars).strip()
                     
                 list_single_team.append(poke.Pokemon(name= name, typo= "Type",ability= ability,tera= tera,moves= list_moves,item_held= item))
+                list_tuple_all_poke.append((partial_link[-41:], name, ability, tera, item, list_moves[0], list_moves[1], list_moves[2], list_moves[3]))
                 print(name, 'teratipo:', tera, 'mosse:', *list_moves, 'abilità:', ability, 'item held:', item)
 
             list_all_teams.append(list_single_team)
             team_page.close()
 
-        return list_all_teams
+        return (list_all_teams, list_tuple_all_poke)
     
 
     

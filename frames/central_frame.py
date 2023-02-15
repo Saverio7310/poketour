@@ -1,5 +1,4 @@
-import tkinter
-from tkinter.tix import Balloon
+import threading
 import customtkinter
 from Classes.download import Download
 from Database.db_connection import DBConnection
@@ -65,7 +64,7 @@ class CentralFrame(customtkinter.CTkFrame):
         if self.var_tour_name == '' or self.var_tour_code == '':
             raise Exception('Nome o codice torneo mancante!')
 
-    def confirm_button_event(self):
+    def stuff(self):
         try:
             self.check_attribute_missing()
         except Exception as exp:
@@ -80,14 +79,25 @@ class CentralFrame(customtkinter.CTkFrame):
             print(exp)
             return
         list_all_teams_link = down.get_teams_link(table=table)
-        list_all_teams = down.get_all_teams(teams_link=list_all_teams_link)
+        list_all_teams, list_of_tuple = down.get_all_teams(teams_link=list_all_teams_link)
         
-
-        '''
-        print(self.check_type.get())
         db = DBConnection()
-        cursor = db.start_connection()
-        result = db.exec_tables_creation(cursor)
+        conn = db.start_connection()
+        result = db.create_table_new_tournament(conn, self.var_tour_code)
+        print(result)
+        result = db.insert_pokemons(conn, self.var_tour_code, list_of_tuple)
+        print(result)
+
+        
+        
+        '''
+
+
+        print(self.check_type.get())
         print(result)
         '''
+
+
+    def confirm_button_event(self):
         
+        threading.Thread(target=self.stuff).start()
