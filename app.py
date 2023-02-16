@@ -79,9 +79,10 @@ class App(customtkinter.CTk):
 
     # funzioni associate agli oggetti
 
-    
-
-    
+    '''
+    OCpGIIa9m9BGzlZ8B5Gt
+    h7kIYruNMePQMy4UZkMj
+    '''
 
 if __name__ == "__main__":
     app = App()

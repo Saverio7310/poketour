@@ -70,7 +70,8 @@ class CentralFrame(customtkinter.CTkFrame):
         except Exception as exp:
             print(exp)
             return
-        print('blablabla')
+        
+        self.confirm_choices_button.configure(state='disabled')
 
         down = Download()
         try:
@@ -79,23 +80,27 @@ class CentralFrame(customtkinter.CTkFrame):
             print(exp)
             return
         list_all_teams_link = down.get_teams_link(table=table)
+        print('Ho preso i link')
         list_all_teams, list_of_tuple = down.get_all_teams(teams_link=list_all_teams_link)
+        print(type(list_of_tuple))
+        print('Ho preso i pokemon')
         
         db = DBConnection()
+        print('Inizio la connessione al db')
         conn = db.start_connection()
-        result = db.create_table_new_tournament(conn, self.var_tour_code)
-        print(result)
-        result = db.insert_pokemons(conn, self.var_tour_code, list_of_tuple)
-        print(result)
-
-        
-        
-        '''
-
-
-        print(self.check_type.get())
-        print(result)
-        '''
+        print('Creo la tabella')
+        db.create_table_new_tournament(conn, self.var_tour_code)
+        print('Cerco di inserire i link')
+        result = db.insert_tournament(conn, self.var_tour_name, self.var_tour_code)
+        print('Cerco di inserire il torneo', result)
+        db.insert_links(conn, self.var_tour_code, list_all_teams_link)
+        print('Ho inserito i link')
+        print('Cerco di inserire i pokemon')
+        db.insert_pokemons(conn, self.var_tour_code, list_of_tuple)
+        print('Ho inserito i pokemon')
+        db.close_connection(conn)
+        print('Ho chiuso la connessione con il db')
+        self.confirm_choices_button.configure(state='normal')
 
 
     def confirm_button_event(self):
