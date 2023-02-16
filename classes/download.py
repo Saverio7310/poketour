@@ -46,20 +46,24 @@ class Download():
     # risultati con le posizioni siano usciti allora non bisogna prendere in considerazione la 
     # posizione perché ovviamente non c'è. Questa scelta la prendo attraverso un try - except
     def __get_link_with_standing(tokens, items, set_teams):
-        if 'Masters' in tokens:
-            for item_anchor in items.find_all("a"):
-                link = item_anchor['href']
-            view_index = tokens.index('View')
-            standing = int(tokens[view_index + 1])
-            set_teams.add((link, standing))
-            print('inserisco:', link, standing)
+        pass
 
     def __get_link_without_standing(tokens, items, set_teams):
-        if 'Masters' in tokens:
-            for item_anchor in items.find_all("a"):
-                link = item_anchor['href']
-            set_teams.add((link,))
-            print('inserisco:', link)
+        '''
+        for item_table_row in table_rows:
+                tokens_list_row = item_table_row.text.split()
+                print(*tokens_list_row, sep="\n")
+                #print(type(tokens_ex), len(tokens_ex))
+                #self.__get_link_without_standing(tokens_list_row, item_table_row, set_teams)
+                if 'Masters' in tokens_list_row:
+                    for item_anchor in item_table_row.find_all("a"):
+                        link = item_anchor['href']
+                    set_teams.add((link,))
+                    print('inserisco:', link)
+                # trasformo il set in una lista e printo la linghezza per capire quanti elementi contiene
+                list_teams = list(set_teams)
+                print(len(list_teams)) 
+        '''
 
     def get_teams_link(self, table):
         # scandisco riga per riga "tr => table row" e prendo tutti i dati testuali contenuti. Splitto parola per parola tramite
@@ -72,23 +76,24 @@ class Download():
         set_teams = set()
         for item_table_row in table.find_all("tr"):
             tokens_list_row = item_table_row.text.split()
-            print(*tokens_list_row, sep="\n")
+            #print(*tokens_list_row, sep="\n")
             #print(type(tokens_ex), len(tokens_ex))
-            try:
-                try_index = tokens_list_row.index('View')
-                tokens_list_row[try_index + 1]
-            except IndexError:
-                self.__get_link_without_standing(tokens_list_row, item_table_row, set_teams)
-                # trasformo il set in una lista e printo la linghezza per capire quanti elementi contiene
-                list_teams = list(set_teams)
-                print(len(list_teams))
-            else:
-                self.__get_link_with_standing(tokens_list_row, item_table_row, set_teams)
-                # ordino il set per ordine di arrivo se controllo la top 32
-                list_teams = list(set_teams)
-                list_teams = sorted(list_teams, key=lambda a: a[1])
-                print(len(list_teams))
-        return list_teams
+            #self.__get_link_with_standing(tokens_list_row, item_table_row, set_teams)
+            if 'Masters' in tokens_list_row:
+                for item_anchor in item_table_row.find_all("a"):
+                    link = item_anchor['href']
+                try:
+                    standing = int(tokens_list_row[tokens_list_row.index('View') + 1])
+                except IndexError:
+                    set_teams.add((link, -1))
+                else:
+                    set_teams.add((link, standing))
+                print('inserisco:', link, standing)
+        #ordino il set per ordine di arrivo se controllo la top 32
+        #list_teams = list(set_teams)
+        #list_teams = sorted(list_teams, key=lambda a: a[1])
+        print(len(set_teams))
+        return set_teams
             
         
     def get_all_teams(self, teams_link):
@@ -130,8 +135,12 @@ class Download():
                 tokens = single_pokemon.text.split()
                 single_string = ' '.join(tokens)
 
+                #print(single_string)
+
                 single_string = re.sub('\s*"\w*\D*"', '', single_string)
-                list_all_attributes = re.split(' EN \w*\s*Tera Type: | Ability: | Held Item: ', single_string)
+                single_string = re.sub('EN (\w|\D|\s)*Tera Type:', 'EN Tera Type:', single_string)
+                list_all_attributes = re.split(' EN Tera Type: | Ability: | Held Item: ', single_string)
+                #print(list_all_attributes)
 
                 name = list_all_attributes[0]
                 tera = list_all_attributes[1]
