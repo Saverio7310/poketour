@@ -5,6 +5,19 @@ usare il db si deve creare un oggetto di questa classe.
 
 import sqlite3
 
+'''
+query per capire se esiste una tabella con un nome specifico
+SELECT EXISTS (
+    SELECT 
+        name
+    FROM 
+        sqlite_schema 
+    WHERE 
+        type='table' AND 
+        name='<table_name>'
+    )
+'''
+
 class DBConnection():
 
     def start_connection(self):
@@ -14,15 +27,14 @@ class DBConnection():
     def create_table_new_tournament(self, conn, tour_code):
         statement1 = """
         CREATE TABLE IF NOT EXISTS tournaments(
-        name text PRIMARY KEY, 
-        link text UNIQUE
+        name text NOT NULL, 
+        link text PRIMARY KEY
         )
         """
         statement2 = """
         CREATE TABLE IF NOT EXISTS ?(
         link text PRIMARY KEY, 
-        standing integer, 
-        FOREIGN KEY(link) REFERENCES tournaments ON DELETE CASCADE ON UPDATE CASCADE
+        standing integer
         )
         """.replace('?', tour_code)
         statement3 = """
@@ -41,7 +53,7 @@ class DBConnection():
         PRIMARY KEY(link, name),
         FOREIGN KEY(link) REFERENCES ? ON DELETE CASCADE ON UPDATE CASCADE
         )
-        """.replace('?', tour_code[:20])
+        """.replace('?', tour_code)
         conn.execute(statement1)
         conn.execute(statement2)
         conn.execute(statement3)
