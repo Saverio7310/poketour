@@ -1,5 +1,7 @@
 import threading
+import concurrent.futures
 import customtkinter
+import time
 from Classes.download import Download
 from Database.db_connection import DBConnection
 
@@ -53,8 +55,8 @@ class CentralFrame(customtkinter.CTkFrame):
         self.confirm_choices_button.grid(row=3, column=2, padx=20, pady=10)
 
 
-    # funzine che controlla se i campi necessari del central frame sono mancanti
-    def check_attribute_missing(self):
+    # funzine che controlla se i campi necessari del central frame sono presenti
+    def check_missing_attributes(self):
         self.var_tour_name = self.entry_tour_name.get()
         self.var_tour_code = self.entry_tour_code.get()
         self.var_topcut = self.optionmenu.get()
@@ -63,46 +65,132 @@ class CentralFrame(customtkinter.CTkFrame):
         self.check_standing = self.checkbox_standing.get()
         if self.var_tour_name == '' or self.var_tour_code == '':
             raise Exception('Nome o codice torneo mancante!')
-
-    def stuff(self):
-        try:
-            self.check_attribute_missing()
-        except Exception as exp:
-            print(exp)
-            return
         
-        self.confirm_choices_button.configure(state='disabled')
-
+    # funzione che controlla l'esistenza o meno dei dati che si vogliono scaricare: se esistono
+    # evito che l'applicazione si fermi per più di un minuto nel tentativo di inserirli
+    def check_tournament_existance(self, db, conn):
+        pass
+        
+    # funzione che permette il download dei dati tramite connessione internet
+    def download_data(self, start):
         down = Download()
         try:
             table = down.establish_connection(code=self.var_tour_code)
         except Exception as exp:
             print(exp)
             return
+        
+        finish = time.perf_counter()
+        print(f'Finito in {round(finish-start, 2)} secondi')
+
         list_all_teams_link = down.get_teams_link(table=table)
         print('Ho preso i link')
-        list_all_teams, list_of_tuple = down.get_all_teams(teams_link=list_all_teams_link)
-        print(type(list_of_tuple))
+
+        finish = time.perf_counter()
+        print(f'Finito in {round(finish-start, 2)} secondi')
+
+        list_of_pokemon_tuple = list()
+
+        try:
+            with concurrent.futures.ThreadPoolExecutor(8) as executor:
+                results = executor.map(down.get_table_html, list_all_teams_link)
+
+            for result in results:
+                list_of_pokemon_tuple += down.get_all_teams(result)
+
+        except ValueError:
+            raise ValueError
+        except Exception:
+            raise Exception
+
+        #list_of_tuple = down.get_all_teams(teams_link=list_all_teams_link)
+        print(len(list_of_pokemon_tuple))
+        print(list_of_pokemon_tuple[0])
         print('Ho preso i pokemon')
+
+        finish = time.perf_counter()
+        print(f'Finito in {round(finish-start, 2)} secondi')
+
+        return (list_all_teams_link, list_of_pokemon_tuple)
+
+    # funzione che permette il salvataggio dei dati creando la connessione al db
+    def save_data(self, db, conn, start, list_all_teams_link, list_of_pokemon_tuple):
         
+
+        print('Creo la tabella')
+        db.create_table_new_tournament(conn, self.var_tour_code)
+
+        finish = time.perf_counter()
+        print(f'Finito in {round(finish-start, 2)} secondi')
+
+        print('Inserisco il torneo nella tabella tornei')
+        result = db.insert_tournament(conn, self.var_tour_name, self.var_tour_code)
+
+        finish = time.perf_counter()
+        print(f'Finito in {round(finish-start, 2)} secondi')
+
+        # mi servono solo i codici, non tutto il link, quindi devo ricavarmelo
+        list_link_standing = [(link[-20:], stand) for link, stand in list_all_teams_link]
+
+        print('Inserisco i link nella tabella del torneo', result)
+        db.insert_links(conn, self.var_tour_code, list_link_standing)
+
+        finish = time.perf_counter()
+        print(f'Finito in {round(finish-start, 2)} secondi')
+
+        print('Inserisco i pokemon nella tebella dei team')
+        db.insert_pokemons(conn, self.var_tour_code, list_of_pokemon_tuple)
+
+        finish = time.perf_counter()
+        print(f'Finito in {round(finish-start, 2)} secondi')
+
+        db.close_connection(conn)
+        print('Ho chiuso la connessione con il db')
+
+        finish = time.perf_counter()
+        print(f'Finito in {round(finish-start, 2)} secondi')
+
+    # funzione che fa partire il download dei dati ed il salvataggio nel db
+    def start_downloading_and_saving(self):
+        try:
+            self.check_missing_attributes()
+        except Exception as exp:
+            print(exp)
+            return
+        
+        start = time.perf_counter()
+
         db = DBConnection()
         print('Inizio la connessione al db')
         conn = db.start_connection()
-        print('Creo la tabella')
-        db.create_table_new_tournament(conn, self.var_tour_code)
-        print('Cerco di inserire i link')
-        result = db.insert_tournament(conn, self.var_tour_name, self.var_tour_code)
-        print('Cerco di inserire il torneo', result)
-        db.insert_links(conn, self.var_tour_code, list_all_teams_link)
-        print('Ho inserito i link')
-        print('Cerco di inserire i pokemon')
-        db.insert_pokemons(conn, self.var_tour_code, list_of_tuple)
-        print('Ho inserito i pokemon')
-        db.close_connection(conn)
-        print('Ho chiuso la connessione con il db')
+
+        finish = time.perf_counter()
+        print(f'Finito in {round(finish-start, 2)} secondi')
+        
+        # DA USARE CON UN IF, SE RITORNA TRUE CHIUDO TUTTO
+        self.check_tournament_existance(db, conn, self.var_tour_code)
+        
+        self.confirm_choices_button.configure(state='disabled')
+
+        try:
+            list_all_teams_link, list_of_pokemon_tuple = self.download_data(start)
+        except ValueError:
+            print('Le teamlist non sono state ancora pubblicate')
+            self.confirm_choices_button.configure(state='normal')
+            return
+        except Exception:
+            print('Errore di comunicazione tra applicazione e server!')
+            self.confirm_choices_button.configure(state='normal')
+            return
+
+        self.save_data(db, conn, start, list_all_teams_link, list_of_pokemon_tuple)
+        '''
+        '''
+        
         self.confirm_choices_button.configure(state='normal')
 
-
+    # funzione che viene chiamata quando si preme il tasto 'Conferma'
     def confirm_button_event(self):
-        
-        threading.Thread(target=self.stuff).start()
+        # si usa un thread per evitare che l'intera applicazione si blocchi per aspettare che la 
+        # funzione chiamata finisca
+        threading.Thread(target=self.start_downloading_and_saving).start()
