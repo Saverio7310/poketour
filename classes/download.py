@@ -3,7 +3,7 @@
 import requests
 import bs4
 import re
-import Classes.pokemon as poke
+from urllib3.exceptions import ProtocolError
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
@@ -17,6 +17,13 @@ class Download():
     CLASSIFICATION_URL = "https://rk9.gg/roster/"
     TEAMLIST_URL = "https://rk9.gg"
     TOURNAMENT_CODE = "df5AzRjKxTb62H7BsbOe"
+
+    header = {
+        'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Safari/605.1.15',
+        'Accept-Language':'en-GB,en;q=0.5',
+        'Referer':'https://google.com',
+        'DNT':'1'
+    }
 
     def establish_connection(self, code):
         # driver per andare a caricare la pagina html dato che la lista non viene caricata tutta subito. Non so nello specifico
@@ -84,19 +91,26 @@ class Download():
                     link = item_anchor['href']
                 try:
                     standing = int(tokens_list_row[tokens_list_row.index('View') + 1])
+                except ValueError:
+                    raise ValueError
                 except IndexError:
                     set_teams.add((link, -1))
                 else:
                     set_teams.add((link, standing))
-                print('inserisco:', link, standing)
-        #ordino il set per ordine di arrivo se controllo la top 32
-        #list_teams = list(set_teams)
-        #list_teams = sorted(list_teams, key=lambda a: a[1])
+                #print('inserisco:', link, standing)
         print(len(set_teams))
         return set_teams
-            
+    
+    def get_table_html(self, team_link):
+        try:
+            with requests.Session() as s:
+                team_page = s.get(url=self.TEAMLIST_URL + team_link[0], headers=self.header)
+            team_soup = bs4.BeautifulSoup(team_page.text, "html.parser")
+            return (team_soup.find("div", {"class": "my-3 mx-5 pt-2 px-3 translation lang-EN"}), team_link[0])
+        except (ConnectionError, OSError, ProtocolError):
+            raise Exception
         
-    def get_all_teams(self, teams_link):
+    def get_all_teams(self, table_link_tuple):
         # itero sul set di link per andare ad analizzare i dati di tutti i team. Il link in realtà è solo parziale, quindi devo
         # completarlo. Una volta fatto ciò possono iniziare a collegarmi ad ognuna delle pagine in questione tramite bs4. Cerco
         # la classe in questione che contiene i pokemon in lingua inglese e poi quella che contiene ogni singolo pokemon. Prima 
@@ -111,62 +125,50 @@ class Download():
         # Uso quindi un piccolo ciclo con cui trasformo la stringa in una lista di caratteri ed inserisco una spazio vuoto prima
         # di ogni lettera maiuscola. Fatto ciò, ho raccolto tutti i dati che mi servivano e posso inserire il pokemon nel suo
         # team e il team nella lista di tutti i team.
-        list_all_teams = list()
+        list_tuple_all_poke = list()
 
-        for partial_link, _ in teams_link:
-            general_link = self.TEAMLIST_URL + partial_link
+        for single_pokemon in table_link_tuple[0].find_all("div", {"class": "pokemon bg-light-green-50 p-3"}):
+            list_moves = list()
 
-            team_page = requests.get(url=general_link)
-            team_soup = bs4.BeautifulSoup(team_page.text, "html.parser")
+            for move in single_pokemon.find_all("span", {"class": "badge"}):
+                list_moves.append(move.text)
 
-            team_table = team_soup.find("div", {"class": "my-3 mx-5 pt-2 px-3 translation lang-EN"})
+            string_moves_for_item = ''.join(list_moves).replace(' ','')
 
-            list_single_team = list()
-            list_tuple_all_poke = list()
+            tokens = single_pokemon.text.split()
+            single_string = ' '.join(tokens)
 
-            for single_pokemon in team_table.find_all("div", {"class": "pokemon bg-light-green-50 p-3"}):
-                list_moves = list()
+            #print(single_string)
 
-                for move in single_pokemon.find_all("span", {"class": "badge"}):
-                    list_moves.append(move.text)
+            # levo tutti gli elementi che non servono e che non permettono il corretto funzionamento
+            # tipo i soprannomi e la ripetizione del nome in alcune righe. Fatto ciò partiziono la 
+            # stringa ed ottengo le info che mi servono, a parte l'oggetto che richiede ulteriori
+            # passaggi per essere preso
+            single_string = re.sub('\s*"\w*\D*"', '', single_string)
+            single_string = re.sub('EN (\w|\D|\s)*Tera Type:', 'EN Tera Type:', single_string)
+            list_all_attributes = re.split(' EN Tera Type: | Ability: | Held Item: ', single_string)
+            #print(list_all_attributes)
 
-                string_moves_for_item = ''.join(list_moves).replace(' ','')
+            name = list_all_attributes[0]
+            tera = list_all_attributes[1]
+            ability = list_all_attributes[2]
 
-                tokens = single_pokemon.text.split()
-                single_string = ' '.join(tokens)
+            list_item_and_moves = list_all_attributes[3].split()
+            string_item_moves = ''.join(list_item_and_moves).replace(' ','')
 
-                #print(single_string)
+            single_item_to_separate = re.split(string_moves_for_item, string_item_moves)[0]
 
-                single_string = re.sub('\s*"\w*\D*"', '', single_string)
-                single_string = re.sub('EN (\w|\D|\s)*Tera Type:', 'EN Tera Type:', single_string)
-                list_all_attributes = re.split(' EN Tera Type: | Ability: | Held Item: ', single_string)
-                #print(list_all_attributes)
-
-                name = list_all_attributes[0]
-                tera = list_all_attributes[1]
-                ability = list_all_attributes[2]
-
-                list_item_and_moves = list_all_attributes[3].split()
-                string_item_moves = ''.join(list_item_and_moves).replace(' ','')
-
-                single_item_to_separate = re.split(string_moves_for_item, string_item_moves)[0]
-
-                list_chars = list(single_item_to_separate)
-                list_chars.reverse()
-                for index, char in enumerate(list_chars):
-                    if char.isupper():
-                        list_chars.insert(index + 1, ' ')
-                list_chars.reverse()
-                item = ''.join(list_chars).strip()
-                    
-                list_single_team.append(poke.Pokemon(name= name, typo= "Type",ability= ability,tera= tera,moves= list_moves,item_held= item))
-                list_tuple_all_poke.append((partial_link[-41:], name, ability, tera, item, list_moves[0], list_moves[1], list_moves[2], list_moves[3]))
-                print(name, 'teratipo:', tera, 'mosse:', *list_moves, 'abilità:', ability, 'item held:', item)
-
-            list_all_teams.append(list_single_team)
-            team_page.close()
-
-        return (list_all_teams, list_tuple_all_poke)
+            list_chars = list(single_item_to_separate)
+            list_chars.reverse()
+            for index, char in enumerate(list_chars):
+                if char.isupper():
+                    list_chars.insert(index + 1, ' ')
+            list_chars.reverse()
+            item = ''.join(list_chars).strip()
+                
+            list_tuple_all_poke.append((table_link_tuple[1][-20:], name, ability, tera, item, list_moves[0], list_moves[1], list_moves[2], list_moves[3]))
+            #print(name, 'teratipo:', tera, 'mosse:', *list_moves, 'abilità:', ability, 'item held:', item)
+        return list_tuple_all_poke
     
 
     
