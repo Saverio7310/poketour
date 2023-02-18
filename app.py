@@ -13,7 +13,8 @@ assieme uso sticky='nsew' allora oltre a muoversi gli elementi andranno ad occup
 import tkinter
 import customtkinter
 import Frames.sidebar_frame as sf
-import Frames.central_frame as cf
+import Frames.download_frame as cf
+import Frames.analysis_frame as af
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -63,19 +64,39 @@ class App(customtkinter.CTk):
         # frame della sidebar
         self.sidebar_frame = sf.SidebarFrame(self, corner_radius=10)
         
-
+        '''
+        frame prima del cambio
         # frame centrale per l'inserimento dei dati
         self.central_frame = cf.CentralFrame(self, corner_radius=10)
         self.central_frame.grid(row=0, column=0, columnspan = 2, sticky='nsew', padx=10, pady=10)
         self.central_frame.grid_rowconfigure((0, 1, 2), weight=1)
         self.central_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        '''
 
-        # textbox in basso
-        self.textbox = customtkinter.CTkTextbox(self, corner_radius=10)
-        #self.textbox.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+        # tabview per cambiare opzioni: scaricare i dati / analizzare i dati del torneo
+        self.central_tabview = customtkinter.CTkTabview(self, width=400)
+        self.central_tabview.grid(row=0, column=0, columnspan = 2, sticky='nsew', padx=10, pady=10)
+        self.central_tabview.add('Aggiungi torneo')
+        self.central_tabview.add('Analizza torneo')
+        self.central_tabview.tab('Aggiungi torneo').grid_columnconfigure(0, weight=1)
+        self.central_tabview.tab('Analizza torneo').grid_columnconfigure(0, weight=1)
+        self.central_tabview.tab('Aggiungi torneo').grid_rowconfigure(0, weight=1)
+        self.central_tabview.tab('Analizza torneo').grid_rowconfigure(0, weight=1)
 
+        # frame nella sezione AGGIUNGI TORNEO
+        self.central_frame = cf.DownloadFrame(self.central_tabview.tab('Aggiungi torneo'), corner_radius=10)
+        self.central_frame.grid(row=0, column=0, columnspan = 2, sticky='nsew', padx=10, pady=10)
+        self.central_frame.grid_rowconfigure((0, 1, 2), weight=1)
+        self.central_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
-
+        # frame nella sezione ANALIZZA TORNEO
+        self.second_frame = af.AnalysisFrame(self.central_tabview.tab('Analizza torneo'), corner_radius=10)
+        self.second_frame.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
+        self.second_frame.grid_rowconfigure(0, weight=1)
+        self.second_frame.grid_columnconfigure(0, weight=1)
+    
+        # connect textbox scroll event to CTk scrollbar
+        #self.second_frame.configure(yscrollcommand=self.ctk_frame_scrollbar.set)
 
     # funzioni associate agli oggetti
 
