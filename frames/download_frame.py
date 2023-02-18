@@ -5,7 +5,7 @@ import time
 from Classes.download import Download
 from Database.db_connection import DBConnection
 
-class CentralFrame(customtkinter.CTkFrame):
+class DownloadFrame(customtkinter.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
@@ -57,19 +57,14 @@ class CentralFrame(customtkinter.CTkFrame):
 
     # funzine che controlla se i campi necessari del central frame sono presenti
     def check_missing_attributes(self):
-        self.var_tour_name = self.entry_tour_name.get()
-        self.var_tour_code = self.entry_tour_code.get()
+        self.var_tour_name = self.entry_tour_name.get().strip()
+        self.var_tour_code = self.entry_tour_code.get().strip()
         self.var_topcut = self.optionmenu.get()
         self.check_type = self.checkbox_type.get()
         self.check_moveset = self.checkbox_moveset.get()
         self.check_standing = self.checkbox_standing.get()
         if self.var_tour_name == '' or self.var_tour_code == '':
             raise Exception('Nome o codice torneo mancante!')
-        
-    # funzione che controlla l'esistenza o meno dei dati che si vogliono scaricare: se esistono
-    # evito che l'applicazione si fermi per più di un minuto nel tentativo di inserirli
-    def check_tournament_existance(self, db, conn):
-        pass
         
     # funzione che permette il download dei dati tramite connessione internet
     def download_data(self, start):
@@ -92,6 +87,8 @@ class CentralFrame(customtkinter.CTkFrame):
         list_of_pokemon_tuple = list()
 
         try:
+            # creo 8 thread invece del massimo (sul mio pc 12) per evitare di intasare il server che
+            # potrebbe chiudere la connessione
             with concurrent.futures.ThreadPoolExecutor(8) as executor:
                 results = executor.map(down.get_table_html, list_all_teams_link)
 
@@ -124,7 +121,7 @@ class CentralFrame(customtkinter.CTkFrame):
         print(f'Finito in {round(finish-start, 2)} secondi')
 
         print('Inserisco il torneo nella tabella tornei')
-        result = db.insert_tournament(conn, self.var_tour_name, self.var_tour_code)
+        db.insert_tournament(conn, self.var_tour_name, self.var_tour_code)
 
         finish = time.perf_counter()
         print(f'Finito in {round(finish-start, 2)} secondi')
@@ -132,7 +129,7 @@ class CentralFrame(customtkinter.CTkFrame):
         # mi servono solo i codici, non tutto il link, quindi devo ricavarmelo
         list_link_standing = [(link[-20:], stand) for link, stand in list_all_teams_link]
 
-        print('Inserisco i link nella tabella del torneo', result)
+        print('Inserisco i link nella tabella del torneo')
         db.insert_links(conn, self.var_tour_code, list_link_standing)
 
         finish = time.perf_counter()
@@ -167,8 +164,12 @@ class CentralFrame(customtkinter.CTkFrame):
         finish = time.perf_counter()
         print(f'Finito in {round(finish-start, 2)} secondi')
         
-        # DA USARE CON UN IF, SE RITORNA TRUE CHIUDO TUTTO
-        self.check_tournament_existance(db, conn, self.var_tour_code)
+        result = db.check_already_saved_tournament(conn, self.var_tour_code)
+
+        if result[0]:
+            print('Il torneo è già stato salvato', result[0])
+            return
+
         
         self.confirm_choices_button.configure(state='disabled')
 
@@ -184,10 +185,10 @@ class CentralFrame(customtkinter.CTkFrame):
             return
 
         self.save_data(db, conn, start, list_all_teams_link, list_of_pokemon_tuple)
-        '''
-        '''
         
         self.confirm_choices_button.configure(state='normal')
+        '''
+        '''
 
     # funzione che viene chiamata quando si preme il tasto 'Conferma'
     def confirm_button_event(self):
