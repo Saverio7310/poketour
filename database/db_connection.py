@@ -80,6 +80,12 @@ class DBConnection():
         conn.executemany(statement, list_of_tuples)
         conn.commit()
 
+    def check_already_saved_tournament(self, conn, tour_code):
+        statement = "SELECT count(*) FROM tournaments WHERE link = ?"
+        cursor = conn.cursor()
+        cursor.execute(statement, (tour_code, ))
+        return cursor.fetchone()
+
     def close_connection(self, conn):
         conn.close()
         
