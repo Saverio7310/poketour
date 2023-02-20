@@ -144,7 +144,7 @@ class Download():
             # tipo i soprannomi e la ripetizione del nome in alcune righe. Fatto ciò partiziono la 
             # stringa ed ottengo le info che mi servono, a parte l'oggetto che richiede ulteriori
             # passaggi per essere preso
-            single_string = re.sub('\s*"\w*\D*"', '', single_string)
+            single_string = re.sub('\s*"(.*?)"', '', single_string)
             single_string = re.sub('EN (\w|\D|\s)*Tera Type:', 'EN Tera Type:', single_string)
             list_all_attributes = re.split(' EN Tera Type: | Ability: | Held Item: ', single_string)
             #print(list_all_attributes)
