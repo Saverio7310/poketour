@@ -1,6 +1,8 @@
 import customtkinter
+from functools import partial
+import tkinter as tk
 
-
+'''
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
@@ -25,6 +27,28 @@ class App(customtkinter.CTk):
         self.textbox.insert("insert", self.combobox.get() + "\n")
 
 
+
+
+class App(customtkinter.CTk):
+    def __init__(self):
+        super().__init__()
+
+        l=[0,1,2,3,4]
+
+        for i, _ in enumerate(l):
+            # Create the command using partial
+            button = customtkinter.CTkButton(self, text="Button number"+str(i), command=partial(self.create_new_page, i))
+            button.grid(row=i)
+
+    def create_new_page(self, name_of_page):
+        print("Creating new page with name=\"%s\"" % name_of_page)
+
+
+
+
+
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()
+'''
