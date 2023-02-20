@@ -86,10 +86,18 @@ class DownloadFrame(customtkinter.CTkFrame):
 
         list_of_pokemon_tuple = list()
 
+        teams_number = len(list_all_teams_link)
+        if teams_number >= 300 and teams_number < 800:
+            thread_number = 10 - teams_number//100
+        elif teams_number < 300:
+            thread_number = 8
+        elif teams_number >= 800:
+            thread_number = 2
+
         try:
             # creo 8 thread invece del massimo (sul mio pc 12) per evitare di intasare il server che
             # potrebbe chiudere la connessione
-            with concurrent.futures.ThreadPoolExecutor(8) as executor:
+            with concurrent.futures.ThreadPoolExecutor(thread_number) as executor:
                 results = executor.map(down.get_table_html, list_all_teams_link)
 
             for result in results:
