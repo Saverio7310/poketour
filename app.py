@@ -60,7 +60,6 @@ class App(customtkinter.CTk):
         self.file_menu.add_command(label='Mostra Tornei', command=show_tournaments)
 
 
-
         # frame della sidebar
         self.sidebar_frame = sf.SidebarFrame(self, corner_radius=10)
         
@@ -94,9 +93,6 @@ class App(customtkinter.CTk):
         self.second_frame.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
         self.second_frame.grid_rowconfigure(0, weight=1)
         self.second_frame.grid_columnconfigure(0, weight=1)
-    
-        # connect textbox scroll event to CTk scrollbar
-        #self.second_frame.configure(yscrollcommand=self.ctk_frame_scrollbar.set)
 
     # funzioni associate agli oggetti
 
