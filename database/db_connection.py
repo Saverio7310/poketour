@@ -19,7 +19,6 @@ SELECT EXISTS (
 '''
 
 class DBConnection():
-
     def start_connection(self):
         connection = sqlite3.connect('Database/tournament.db')
         return connection
@@ -85,8 +84,25 @@ class DBConnection():
         cursor = conn.cursor()
         cursor.execute(statement, (tour_code, ))
         return cursor.fetchone()
+    
+    def fetch_tournaments_data(self, conn):
+        statement = 'SELECT name, link FROM tournaments'
+        cursor = conn.cursor()
+        cursor.execute(statement)
+        return cursor.fetchall()
+    
+    def get_general_info(self, conn, tour_code):
+        statement1 = 'SELECT count(link) FROM ?'.replace('?', tour_code)
+        statement2 = 'SELECT name, count(name) FROM teams_? GROUP BY name ORDER BY count(name) DESC'.replace('?', tour_code)
+        statement3 = 'SELECT tera, count(tera) FROM teams_? GROUP BY tera ORDER BY count(tera) DESC'.replace('?', tour_code)
+        cursor = conn.cursor()
+        cursor.execute(statement1)
+        participants_number = cursor.fetchall()
+        cursor.execute(statement2)
+        top_poke = cursor.fetchall()
+        cursor.execute(statement3)
+        top_tera = cursor.fetchall()
+        return (participants_number, top_poke, top_tera)
 
     def close_connection(self, conn):
         conn.close()
-        
-
