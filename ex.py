@@ -1,5 +1,6 @@
 import customtkinter
 from functools import partial
+from Database.db_connection import DBConnection
 import tkinter as tk
 
 '''
@@ -52,3 +53,31 @@ if __name__ == "__main__":
     app = App()
     app.mainloop()
 '''
+
+db = DBConnection()
+conn = db.start_connection()
+top_moveset, top_tera, top_ability, top_item = db.get_specific_poke_info(conn, tour_code='OCpGIIa9m9BGzlZ8B5Gt', poke_name='Arcanine')
+
+#print(top_moveset)
+
+moveset_list = list()
+
+for moveset in top_moveset:
+    moveset_list.append(set(moveset))
+
+moveset_list_final = list()
+
+for move_set1 in moveset_list:
+    num = 0
+    for move_set2 in moveset_list:
+        if move_set2 == move_set1:
+            num += 1
+            moveset_list.remove(move_set2)
+    moveset_list_final.append((move_set1, num))
+
+moveset_list_final.sort(key=lambda a : a[1], reverse=True)
+
+print(*moveset_list_final, sep='\n')
+print(*top_ability[:5], sep='\n')
+#print(*top_item, sep='\n')
+#print(*top_tera, sep='\n')
