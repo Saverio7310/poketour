@@ -105,7 +105,7 @@ class DBConnection():
         return (participants_number, top_poke, top_tera)
     
     def get_specific_poke_info(self, conn, tour_code, poke_name):
-        statement1 = 'SELECT movea, moveb, movec, moved FROM teams_{code} WHERE name = \'{name}\' GROUP BY movea, moveb, movec, moved'.format(code=tour_code, name=poke_name)
+        statement1 = 'SELECT movea, moveb, movec, moved FROM teams_{code} WHERE name = \'{name}\''.format(code=tour_code, name=poke_name)
         statement2 = 'SELECT item, count(item) FROM teams_{code} WHERE name = \'{name}\' GROUP BY item ORDER BY count(item) DESC'.format(code=tour_code, name=poke_name)
         statement3 = 'SELECT ability, count(ability) FROM teams_{code} WHERE name = \'{name}\' GROUP BY ability ORDER BY count(ability) DESC'.format(code=tour_code, name=poke_name)
         statement4 = 'SELECT tera, count(tera) FROM teams_{code} WHERE name = \'{name}\' GROUP BY tera ORDER BY count(tera) DESC'.format(code=tour_code, name=poke_name)
