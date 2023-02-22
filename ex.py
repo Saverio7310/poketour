@@ -69,15 +69,17 @@ moveset_list_final = list()
 
 for move_set1 in moveset_list:
     num = 0
+    temp_ind = list()
     for move_set2 in moveset_list:
         if move_set2 == move_set1:
             num += 1
             moveset_list.remove(move_set2)
+            print(moveset_list)
     moveset_list_final.append((move_set1, num))
 
 moveset_list_final.sort(key=lambda a : a[1], reverse=True)
 
 print(*moveset_list_final, sep='\n')
-print(*top_ability[:5], sep='\n')
+#print(*top_ability[:5], sep='\n')
 #print(*top_item, sep='\n')
 #print(*top_tera, sep='\n')
