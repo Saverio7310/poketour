@@ -3,13 +3,14 @@ import threading
 import tkinter
 from tkinter import ttk
 from Database.db_connection import DBConnection
+from Frames.info_frame import InfoFrame
 
 class TournamentWindow(customtkinter.CTkToplevel):
     def __init__(self, *args, tour_name='Nome Torneo', tour_code='Codice Torneo',  **kwargs):
         super().__init__(*args, **kwargs)
 
         #parametri generali finestra
-        self.geometry("800x600")
+        self.geometry("1000x800")
         self.title('Analisi ' + str(tour_name))
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -74,7 +75,7 @@ class TournamentWindow(customtkinter.CTkToplevel):
         str_to_show = 'Dati generati su un totale di ? partecipanti'.replace('?', str(participants[0]))
         self.label_part = customtkinter.CTkLabel(self.frame, text=str_to_show, anchor='sw')
         #self.label_part.cget("font").configure(size=50)
-        self.label_part.grid(row=1, column=0, columnspan=2, sticky='nsew')
+        self.label_part.grid(row=1, column=0, columnspan=2, sticky='nsew', padx = 20)
 
 
         # Stile associato alle due tabelle 
@@ -117,21 +118,17 @@ class TournamentWindow(customtkinter.CTkToplevel):
 
         # Tabella con la classifica dei poke più usati
         self.top_poke_tree = ttk.Treeview(self.frame, show='headings')
-        self.top_poke_tree.grid(row=2, column=0, sticky='nsew')
+        self.top_poke_tree.grid(row=2, column=0, sticky='nsew', padx = (20, 10), pady = (10,10))
         self.top_poke_tree['columns'] = ('name', 'usage')
         self.top_poke_tree.column('name', minwidth=160)
         self.top_poke_tree.column('usage', width=50, minwidth=40)
-        self.top_poke_tree.heading('name', text='Name', anchor=tkinter.W)
-        self.top_poke_tree.heading('usage', text='Usage', anchor=tkinter.W)
+        self.top_poke_tree.heading('name', text=' Name', anchor=tkinter.W)
+        self.top_poke_tree.heading('usage', text=' Usage', anchor=tkinter.W)
 
         # Riempimento della tabella con i dati
         for tup in top_poke:
             self.top_poke_tree.insert('', tkinter.END, values=tup)
 
-        # Frame che viene mostrato quando si clicca due volte una riga
-        self.info_poke_frame = customtkinter.CTkFrame(self, corner_radius=10)
-        #self.info_poke_frame.grid_columnconfigure((0, 1), weight=1)
-        #self.info_poke_frame.grid_rowconfigure((0, 2), weight=1)
         
         # funzione che parte quando si clicca due volte una riga. Preso il nome del poke contenuto
         # nella riga selezionata, accedo al valore contenuto nel dizionario associato a quel nome.
@@ -143,26 +140,27 @@ class TournamentWindow(customtkinter.CTkToplevel):
             # Prende il valore contenuto nella riga selezionata
             values = self.top_poke_tree.item(selected, 'values')
             moveset, tera, ability, item = dict_poke_info[values[0]]
-            self.info_poke_frame.grid(row=3, column=0, columnspan = 2, sticky='sew', padx=10, pady=10)
+            # Frame che viene mostrato quando si clicca due volte una riga
+            info_poke_frame = InfoFrame(self, corner_radius=10, name=values[0], moveset=moveset, tera=tera, ability=ability, item=item, height=300)
+            info_poke_frame.grid(row=3, column=0, columnspan = 2, sticky='sew', padx=10, pady=10)
             #self.info_poke_frame.grid_propagate(0)
             #self.info_poke_frame.configure(width=300)
-            
-            print(*moveset, sep='\n')
+            """ print(*moveset, sep='\n')
             print(tera)
             print(ability)
-            print(item)
+            print(item) """
 
         # Associo alla tabella della lista dei poke la funzione 'click' quando di clicca due volte
         self.top_poke_tree.bind('<Double-1>', click)
 
         # Tabella con la classifica delle tera più usate
         self.top_tera_tree = ttk.Treeview(self.frame, show='headings')
-        self.top_tera_tree.grid(row=2, column=1, sticky='nsew')
+        self.top_tera_tree.grid(row=2, column=1, sticky='nsew', padx = (10, 20), pady = (10,10))
         self.top_tera_tree['columns'] = ('tera', 'usage')
         self.top_tera_tree.column('tera', minwidth=160)
         self.top_tera_tree.column('usage', width=50, minwidth=40)
-        self.top_tera_tree.heading('tera', text='Teratype', anchor=tkinter.W)
-        self.top_tera_tree.heading('usage', text='Usage', anchor=tkinter.W)
+        self.top_tera_tree.heading('tera', text=' Teratype', anchor=tkinter.W)
+        self.top_tera_tree.heading('usage', text=' Usage', anchor=tkinter.W)
 
         # Riempimento della tabella con i dati
         for tup in top_tera:
