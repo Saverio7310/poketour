@@ -36,7 +36,7 @@ class App(customtkinter.CTk):
         self.grid_rowconfigure(0, weight=1)
         #self.grid_columnconfigure(0, weight=1)
 
-        # menu interno dell'app
+        """ # menu interno dell'app
         self.menu_bar = tkinter.Menu(self)
         self.config(menu=self.menu_bar)
 
@@ -52,7 +52,7 @@ class App(customtkinter.CTk):
             else:
                 self.sidebar_frame.grid_forget()
                 self.central_frame.grid(row=0, column=0)
-                self.sidebar_frame_visible = False
+                self.sidebar_frame_visible = False 
 
         # menu dei file
         self.file_menu = tkinter.Menu(self.menu_bar)
@@ -62,6 +62,7 @@ class App(customtkinter.CTk):
 
         # frame della sidebar
         self.sidebar_frame = sf.SidebarFrame(self, corner_radius=10)
+        """
         
         '''
         frame prima del cambio
@@ -97,8 +98,9 @@ class App(customtkinter.CTk):
     # funzioni associate agli oggetti
 
     '''
-    OCpGIIa9m9BGzlZ8B5Gt
-    h7kIYruNMePQMy4UZkMj
+    San Diego h7kIYruNMePQMy4UZkMj
+    Oceania   OCpGIIa9m9BGzlZ8B5Gt
+    Knoxville 0pN73b3SizrkohJlZPd6
     '''
 
 if __name__ == "__main__":
