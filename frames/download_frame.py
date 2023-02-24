@@ -17,19 +17,19 @@ class DownloadFrame(customtkinter.CTkFrame):
         self.check_moveset = 0
         self.check_standing = 0
 
-        # entry per il nome del torneo
+        # label + entry per il nome del torneo
         self.label_tour_name = customtkinter.CTkLabel(self, width=200, text="Nome torneo", anchor='w')
         self.label_tour_name.grid(row=0, column=0, padx=10, pady=10)
-        self.entry_tour_name = customtkinter.CTkEntry(self, width=200, placeholder_text="es. Orlando 2023")
+        self.entry_tour_name = customtkinter.CTkEntry(self, width=200, placeholder_text="es. Orlando")
         self.entry_tour_name.grid(row=0, column=1, padx=10, pady=10, columnspan=1)
 
-        # entry per il codice del torneo
+        # label + entry per il codice del torneo
         self.label_tour_code = customtkinter.CTkLabel(self, width=200, text="Codice rk9 del torneo", anchor='w')
         self.label_tour_code.grid(row=1, column=0, padx=10, pady=10)
         self.entry_tour_code = customtkinter.CTkEntry(self, width=200, placeholder_text="es. h7kIYruNMePQMy4UZkMj")
         self.entry_tour_code.grid(row=1, column=1, padx=10, pady=10)
 
-        # optionmenu per la scelta della top da analizzare 
+        """ # optionmenu per la scelta della top da analizzare 
         self.label_topcut = customtkinter.CTkLabel(self, width=200, text="Partecipanti", anchor='w')
         self.label_topcut.grid(row=2, column=0, padx=10, pady=10)
         self.optionmenu = customtkinter.CTkOptionMenu(self, width=200, dynamic_resizing=False,
@@ -47,7 +47,7 @@ class DownloadFrame(customtkinter.CTkFrame):
         # checkbox che serve a capire se rk9 ha già pubblicato le posizioni finali oppure se 
         # il torneo è ancora in corso e non bisogna salvare le posizioni 
         self.checkbox_standing = customtkinter.CTkCheckBox(self, text="Posizioni pubblicate")
-        self.checkbox_standing.grid(row=2, column=2, pady=20, padx=20)
+        self.checkbox_standing.grid(row=2, column=2, pady=20, padx=20) """
 
         # bottone per confermare
         self.confirm_choices_button = customtkinter.CTkButton(self, command=self.confirm_button_event,
@@ -59,10 +59,10 @@ class DownloadFrame(customtkinter.CTkFrame):
     def check_missing_attributes(self):
         self.var_tour_name = self.entry_tour_name.get().strip()
         self.var_tour_code = self.entry_tour_code.get().strip()
-        self.var_topcut = self.optionmenu.get()
+        """ self.var_topcut = self.optionmenu.get()
         self.check_type = self.checkbox_type.get()
         self.check_moveset = self.checkbox_moveset.get()
-        self.check_standing = self.checkbox_standing.get()
+        self.check_standing = self.checkbox_standing.get() """
         if self.var_tour_name == '' or self.var_tour_code == '':
             raise Exception('Nome o codice torneo mancante!')
         
@@ -86,6 +86,9 @@ class DownloadFrame(customtkinter.CTkFrame):
 
         list_of_pokemon_tuple = list()
 
+        # scelta del numero di thread per il downloa dei dati. Maggiore è il numero di link a cui accedere
+        # minore sarà il numero di thread da utilizzare per evitare di intasare il sito che potrebbe 
+        # chiudere la connessione
         teams_number = len(list_all_teams_link)
         if teams_number >= 300 and teams_number < 800:
             thread_number = 10 - teams_number//100
@@ -95,7 +98,7 @@ class DownloadFrame(customtkinter.CTkFrame):
             thread_number = 2
 
         try:
-            # creo 8 thread invece del massimo (sul mio pc 12) per evitare di intasare il server che
+            # creo n thread invece del massimo (sul mio pc 12) per evitare di intasare il server che
             # potrebbe chiudere la connessione
             with concurrent.futures.ThreadPoolExecutor(thread_number) as executor:
                 results = executor.map(down.get_table_html, list_all_teams_link)
@@ -120,7 +123,6 @@ class DownloadFrame(customtkinter.CTkFrame):
 
     # funzione che permette il salvataggio dei dati creando la connessione al db
     def save_data(self, db, conn, start, list_all_teams_link, list_of_pokemon_tuple):
-        
 
         print('Creo la tabella')
         db.create_table_new_tournament(conn, self.var_tour_code)
@@ -177,10 +179,10 @@ class DownloadFrame(customtkinter.CTkFrame):
         if result[0]:
             print('Il torneo è già stato salvato', result[0])
             return
-
         
         self.confirm_choices_button.configure(state='disabled')
 
+        # inizio del download dei dati con la funzione definita sopra
         try:
             list_all_teams_link, list_of_pokemon_tuple = self.download_data(start)
         except ValueError:
@@ -192,11 +194,10 @@ class DownloadFrame(customtkinter.CTkFrame):
             self.confirm_choices_button.configure(state='normal')
             return
 
+        # inizio del salvataggio dei dati con la funzione definita sopra
         self.save_data(db, conn, start, list_all_teams_link, list_of_pokemon_tuple)
         
         self.confirm_choices_button.configure(state='normal')
-        '''
-        '''
 
     # funzione che viene chiamata quando si preme il tasto 'Conferma'
     def confirm_button_event(self):
