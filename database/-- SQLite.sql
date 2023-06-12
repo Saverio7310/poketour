@@ -10,4 +10,4 @@ moved in ('Flare Blitz', 'Protect', 'Extreme Speed', 'Will-O-Wisp')
 GROUP BY movea, moveb, movec, moved
 ORDER BY movea, moveb, movec, moved */
 
-SELECT name, ability FROM teams_OCpGIIa9m9BGzlZ8B5Gt WHERE name = 'Dondozo' 
+SELECT distinct name FROM teams_h7kIYruNMePQMy4UZkMj where name = 'Arcanine'
