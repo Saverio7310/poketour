@@ -25,8 +25,9 @@ class App(customtkinter.CTk):
 
         # configure window
         self.title("Analisi tornei")
-        self.geometry(f"{1000}x{800}")
-        self.minsize(800, 600)
+        self.geometry(f"{800}x{600}")
+        #self.minsize(800, 600)
+        self.resizable(False, False)
 
         # configure grid layout (2x2)
         # con valore 0 una riga non si espande in verticale
@@ -74,7 +75,7 @@ class App(customtkinter.CTk):
         '''
 
         # tabview per cambiare opzioni: scaricare i dati / analizzare i dati del torneo
-        self.central_tabview = customtkinter.CTkTabview(self, width=400, bg_color='gray17')
+        self.central_tabview = customtkinter.CTkTabview(self, width=400, corner_radius=15)
         self.central_tabview.grid(row=0, column=0, columnspan = 2, sticky='nsew', padx=10, pady=10)
         self.central_tabview.add('Aggiungi torneo')
         self.central_tabview.add('Analizza torneo')
@@ -84,13 +85,13 @@ class App(customtkinter.CTk):
         self.central_tabview.tab('Analizza torneo').grid_rowconfigure(0, weight=1)
 
         # frame nella sezione AGGIUNGI TORNEO
-        self.central_frame = cf.DownloadFrame(self.central_tabview.tab('Aggiungi torneo'), corner_radius=10)
+        self.central_frame = cf.DownloadFrame(self.central_tabview.tab('Aggiungi torneo'), fg_color = 'gray17')
         self.central_frame.grid(row=0, column=0, sticky='nsew')
         self.central_frame.grid_rowconfigure((0, 1, 2), weight=1)
         self.central_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
         # frame nella sezione ANALIZZA TORNEO
-        self.second_frame = af.AnalysisFrame(self.central_tabview.tab('Analizza torneo'), corner_radius=10)
+        self.second_frame = af.AnalysisFrame(self.central_tabview.tab('Analizza torneo'), fg_color = 'gray17')
         self.second_frame.grid(row=0, column=0, sticky='nsew')
         self.second_frame.grid_rowconfigure(0, weight=1)
         self.second_frame.grid_columnconfigure(0, weight=1)
@@ -100,6 +101,7 @@ class App(customtkinter.CTk):
     '''
     San Diego h7kIYruNMePQMy4UZkMj
     Oceania   OCpGIIa9m9BGzlZ8B5Gt
+    Bochum    Ut3nbmM0sUXlyQolPRc3
     Knoxville 0pN73b3SizrkohJlZPd6
     '''
 
