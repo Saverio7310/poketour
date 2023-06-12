@@ -71,7 +71,7 @@ class Download():
                 try:
                     standing = int(tokens_list_row[tokens_list_row.index('View') + 1])
                 except ValueError:
-                    raise ValueError
+                    raise ValueError('Le teamlist non sono state ancora pubblicate')
                 except IndexError:
                     set_teams.add((link, -1))
                 else:
@@ -82,7 +82,7 @@ class Download():
     
     # una volta salvati i link, posso collegarmi alle pagine dei team tramite una nuova connessione. Non scandisco sui link
     # presenti nell'insieme ritornato dalla funzione precedente perché questa funzione la chiamo tramite Thread, quindi
-    # i link li passo con quella chiamta e qui il codice dev funzionare sul singolo link. È possibile che per le troppe 
+    # i link li passo con quella chiamta e qui il codice deve funzionare sul singolo link. È possibile che per le troppe 
     # connessioni il sito blocchi la connessione al mio indirizzo IP, generando 3 eccezioni una dentro l'altra. Per questo
     # uso un try except usando un generico 'Exception' dato che non saprei quale scegliere delle 3+ che vengono lanciate. 
     # Per velocizzare il tutto, questa funzione ritorna tutto il codice html che viene lavorato trmaite un'altra funzione.
@@ -93,7 +93,7 @@ class Download():
             team_soup = bs4.BeautifulSoup(team_page.text, "html.parser")
             return (team_soup.find("div", {"class": "my-3 mx-5 pt-2 px-3 translation lang-EN"}), team_link[0])
         except (ConnectionError, OSError, ProtocolError):
-            raise Exception
+            raise Exception('Errore di comunicazione tra applicazione e server!')
         
     def get_all_teams(self, table_link_tuple):
         # itero sul set di link per andare ad analizzare i dati di tutti i team. Il link in realtà è solo parziale, 
